@@ -4,14 +4,15 @@ Switch is a basic platformer, where you complete levels by switching between 2 w
 
 Controls:
 
-Left arrow / a = go left
-Right arrow / d = go right
-Up arrow / w = jump
+Left arrow / a = go left  
+Right arrow / d = go right  
+Up arrow / w = jump  
 Space = Switch world!
 
 In the next version:
 
 - Portal to enter main menu (after completing tutorial)
 - Intro text in tutorial
+- Skip button in tutorial to enter main menu directly
 - More levels (levels 1 & 2)
 - Change in player physics in specific levels!
