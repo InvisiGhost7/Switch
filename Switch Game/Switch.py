@@ -4,17 +4,65 @@ WIDTH, HEIGHT = 800, 600
 
 current_level = 'tutorial'
 tile_size = 20
-level_width = WIDTH
-level_height = HEIGHT
-
 
 class Game:
+
     def __init__(self):
         pygame.init()
         pygame.display.set_caption('Switch Game')
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.clock = pygame.time.Clock()
         self.white_world = True
+
+        self.all_sprites = pygame.sprite.Group()
+        self.white_platforms = pygame.sprite.Group()
+        self.black_platforms = pygame.sprite.Group()
+
+        self.camera = Camera(WIDTH, HEIGHT)
+
+        self.player = Player(100, 100)
+        self.all_sprites.add(self.player)
+
+        self.level_width = WIDTH
+        self.level_height = HEIGHT
+        self.read_map()
+
+    def read_map(self):
+        try:
+            max_rows = 0
+            max_cols = 0
+            script_dir = os.path.dirname(__file__)
+            map_path = os.path.join(script_dir, 'Maps', f'{current_level}.txt')
+            with open(map_path, 'r') as file:
+
+                for row, line in enumerate(file):
+                    line = line.strip('\n')
+                    max_rows = row + 1
+                    for col, character in enumerate(line):
+                        x = col * tile_size
+                        y = row * tile_size
+
+                        max_cols = max(max_cols, col + 1)
+
+                        if character == 'w':
+                            block = Platforms(x, y, 'white', tile_size, tile_size)
+                            self.all_sprites.add(block)
+                            self.white_platforms.add(block)
+                        elif character == 'b':
+                            block = Platforms(x, y, 'black', tile_size, tile_size)
+                            self.all_sprites.add(block)
+                            self.black_platforms.add(block)
+                        elif character == 'a':
+                            block = Platforms(x, y, 'all', tile_size, tile_size)
+                            self.all_sprites.add(block)
+                            self.white_platforms.add(block)
+                            self.black_platforms.add(block)
+
+            self.level_width = max_cols * tile_size
+            self.level_height = max_rows * tile_size
+
+        except FileNotFoundError:
+            print(f'Maps/{current_level}.txt file not found')
 
     def run(self):
         while True:
@@ -29,16 +77,16 @@ class Game:
                         else:
                             self.white_world = True
 
-            all_sprites.update()
-            camera.update(player)
+            self.all_sprites.update()
+            self.camera.update(self.player)
 
             if self.white_world:
                 self.screen.fill((255, 255, 255))
             else:
                 self.screen.fill((0, 0, 0))
 
-            for sprite in all_sprites:
-                self.screen.blit(sprite.image, camera.apply(sprite))
+            for sprite in self.all_sprites:
+                self.screen.blit(sprite.image, game.camera.apply(sprite))
 
             pygame.display.flip()
             self.clock.tick(60)
@@ -103,7 +151,7 @@ class Player(pygame.sprite.Sprite):
         elif self.vx < -self.max_speed:
             self.vx = -self.max_speed
 
-        solid_blocks = black_platforms if game.white_world else white_platforms
+        solid_blocks = game.black_platforms if game.white_world else game.white_platforms
 
         self.rect.x += self.vx
 
@@ -135,7 +183,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.top = hit.rect.bottom
                 self.vy = 0
 
-        if self.rect.bottom >= level_height:
+        if self.rect.bottom >= game.level_height:
             self.rect.center = (self.spawn_x, self.spawn_y)
             self.vx = 0
             self.vy = 0
@@ -148,6 +196,9 @@ class Player(pygame.sprite.Sprite):
                 self.alpha = 255
                 self.fading = False
             self.image.set_alpha(self.alpha)
+
+        self.image.fill((0, 0, 0))
+        pygame.draw.rect(self.image, (144, 238, 144, self.alpha), self.image.get_rect())
 
 class Platforms(pygame.sprite.Sprite):
     def __init__(self, x, y, colour, width, height):
@@ -167,57 +218,6 @@ class Platforms(pygame.sprite.Sprite):
             border = (99, 102, 241)
 
         pygame.draw.rect(self.image, border, self.image.get_rect(), 1)
-
-def read_map():
-    try:
-        max_rows = 0
-        max_cols = 0
-        script_dir = os.path.dirname(__file__)
-        map_path = os.path.join(script_dir, 'Maps', f'{current_level}.txt')
-        with open(map_path, 'r') as file:
-
-            for row, line in enumerate(file):
-                line = line.strip('\n')
-                max_rows = row + 1
-                for col, char in enumerate(line):
-                    x = col * tile_size
-                    y = row * tile_size
-
-                    max_cols = max(max_cols, col + 1)
-
-                    if char == 'w':
-                        block = Platforms(x, y, 'white', tile_size, tile_size)
-                        all_sprites.add(block)
-                        white_platforms.add(block)
-                    elif char == 'b':
-                        block = Platforms(x, y, 'black', tile_size, tile_size)
-                        all_sprites.add(block)
-                        black_platforms.add(block)
-                    elif char == 'a':
-                        block = Platforms(x, y, 'all', tile_size, tile_size)
-                        all_sprites.add(block)
-                        white_platforms.add(block)
-                        black_platforms.add(block)
-
-        global level_width, level_height
-        level_width = max_cols * tile_size
-        level_height = max_rows * tile_size
-        return level_width, level_height
-
-    except FileNotFoundError:
-        print(f'Maps/{current_level}.txt file not found')
-        return WIDTH, HEIGHT
-
-all_sprites = pygame.sprite.Group()
-white_platforms = pygame.sprite.Group()
-black_platforms = pygame.sprite.Group()
-player = Player(100, 100)
-
-all_sprites.add(player)
-
-level_width, level_height = read_map()
-
-camera = Camera(WIDTH, HEIGHT)
 
 game = Game()
 game.run()
