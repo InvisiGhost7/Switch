@@ -1,15 +1,14 @@
-import sys, pygame, os
+import pygame, sys, os
 
 WIDTH, HEIGHT = 800, 600
 
-global current_level
 current_level = 'tutorial'
 tile_size = 20
 level_width = WIDTH
 level_height = HEIGHT
 
 
-class Game():
+class Game:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption('Switch Game')
@@ -44,7 +43,7 @@ class Game():
             pygame.display.flip()
             self.clock.tick(60)
 
-class Camera():
+class Camera:
     def __init__(self, width, height):
         self.camera = pygame.Rect(0, 0, width, height)
         self.width = width
@@ -108,7 +107,7 @@ class Player(pygame.sprite.Sprite):
 
         self.rect.x += self.vx
 
-        hits = pygame.sprite.spritecollide(self, solid_blocks, False)
+        hits = pygame.sprite.spritecollide(self, solid_blocks,False)
 
         for hit in hits:
             if self.vx > 0:
